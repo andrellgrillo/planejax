@@ -8,7 +8,10 @@ router.get('/', async (req, res) => {
     const where = req.query.orgaoId ? { orgaoId: req.query.orgaoId as string } : {}
     const unidades = await prisma.unidadeGestora.findMany({
       where,
-      include: { _count: { select: { unidadesRequisitantes: true } } },
+      include: {
+        orgao: { select: { id: true, nome: true, sigla: true } },
+        _count: { select: { unidadesRequisitantes: true } }
+      },
       orderBy: { nome: 'asc' }
     })
     res.json(unidades)

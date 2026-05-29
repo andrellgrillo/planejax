@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const navItems = [
-  { href: '/unidades', label: 'Unidades', icon: '🏛' },
+  { href: '/unidades-gestoras', label: 'U. Gestoras', icon: '🏛' },
   { href: '/unidades-requisitantes', label: 'U. Requisitantes', icon: '🏢' },
   { href: '/dfd', label: 'DFDs', icon: '📋' },
   { href: '/pca', label: 'PCA', icon: '📊' },
