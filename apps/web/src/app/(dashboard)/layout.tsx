@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 
 const navItems = [
   { href: '/unidades-gestoras', label: 'U. Gestoras', icon: '🏛' },
-  { href: '/unidades-orcamentarias', label: 'U. Orçamentárias', icon: '💰' },
   { href: '/unidades-requisitantes', label: 'U. Requisitantes', icon: '🏢' },
   { href: '/dfd', label: 'DFDs', icon: '📋' },
   { href: '/pca', label: 'PCA', icon: '📊' },

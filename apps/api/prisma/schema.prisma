@@ -94,7 +94,6 @@ model Orgao {
   updatedAt DateTime   @updatedAt
 
   unidades UnidadeGestora[]
-  unidadesOrcamentarias UnidadeOrcamentaria[]
   pcas     PCA[]
 
   @@map("orgaos")
@@ -127,19 +126,6 @@ model UnidadeRequisitante {
   dfds           DocumentoFormalizacaoDemanda[]
 
   @@map("unidades_requisitantes")
-}
-
-model UnidadeOrcamentaria {
-  id        String   @id @default(cuid())
-  codigo    String?
-  nome      String
-  orgaoId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  orgao Orgao @relation(fields: [orgaoId], references: [id])
-
-  @@map("unidades_orcamentarias")
 }
 
 model DocumentoFormalizacaoDemanda {

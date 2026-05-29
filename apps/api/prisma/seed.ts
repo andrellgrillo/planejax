@@ -60,14 +60,6 @@ async function main() {
     },
   })
 
-  await prisma.unidadeOrcamentaria.create({
-    data: {
-      codigo: '001',
-      nome: 'Unidade Orçamentária Exemplo',
-      orgaoId: orgao.id,
-    },
-  })
-
   const ug = await prisma.unidadeGestora.create({
     data: {
       codigoUasg: '999999',
