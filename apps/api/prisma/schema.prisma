@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Esfera {
+  FEDERAL
+  ESTADUAL
+  MUNICIPAL
+  DISTRITAL
+}
+
+enum Poder {
+  EXECUTIVO
+  LEGISLATIVO
+  JUDICIARIO
+  TRIBUNAL_CONTAS
+  MINISTERIO_PUBLICO
+  DEFENSORIA
+}
+
+enum StatusOrgao {
+  ATIVO
+  INATIVO
+}
+
+enum StatusDFD {
+  RASCUNHO
+  EM_ANALISE
+  APROVADO
+  REJEITADO
+}
+
+enum StatusPCA {
+  RASCUNHO
+  CONSOLIDADO
+  EM_APROVACAO
+  APROVADO
+  PUBLICADO
+}
+
+enum StatusItemPCA {
+  PLANEJADO
+  EM_LICITACAO
+  CONTRATADO
+  CANCELADO
+}
+
+enum TipoItem {
+  MATERIAL_CONSUMO
+  MATERIAL_PERMANENTE
+  SERVICO
+  SERVICO_ENGENHARIA
+  OBRA
+  SOLUCAO_TI
+  LOCACAO_IMOVEL
+  CAPACITACAO
+  OUTROS
+}
+
+enum NaturezaItem {
+  CONTINUADO
+  NAO_CONTINUADO
+  CONTINUADO_POR_DEMANDA
+}
+
+enum Prioridade {
+  ALTA
+  MEDIA
+  BAIXA
+}
+
+enum PapelUsuario {
+  ADMIN
+  REQUISITANTE
+  AREA_TECNICA
+  SETOR_CONTRATACOES
+  AUTORIDADE_COMPETENTE
+}
+
+model Orgao {
+  id        String     @id @default(cuid())
+  cnpj      String     @unique
+  nome      String
+  sigla     String
+  esfera    Esfera
+  poder     Poder
+  status    StatusOrgao @default(ATIVO)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  unidades UnidadeGestora[]
+  pcas     PCA[]
+
+  @@map("orgaos")
+}
+
+model UnidadeGestora {
+  id         String   @id @default(cuid())
+  codigoUasg String?
+  nome       String
+  sigla      String?
+  orgaoId    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  orgao            Orgao              @relation(fields: [orgaoId], references: [id])
+  unidadesRequisitantes UnidadeRequisitante[]
+
+  @@map("unidades_gestoras")
+}
+
+model UnidadeRequisitante {
+  id               String   @id @default(cuid())
+  nome             String
+  sigla            String?
+  unidadeGestoraId String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  unidadeGestora UnidadeGestora   @relation(fields: [unidadeGestoraId], references: [id])
+  dfds           DocumentoFormalizacaoDemanda[]
+
+  @@map("unidades_requisitantes")
+}
+
+model DocumentoFormalizacaoDemanda {
+  id                     String    @id @default(cuid())
+  numero                 Int
+  ano                    Int
+  unidadeRequisitanteId  String
+  descricao              String
+  justificativa          String?
+  alignedPlanoEstrategico String?
+  status                 StatusDFD @default(RASCUNHO)
+  observacoes            String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  unidadeRequisitante UnidadeRequisitante @relation(fields: [unidadeRequisitanteId], references: [id])
+  itens               ItemPCA[]
+
+  @@unique([numero, ano])
+  @@map("documentos_formalizacao_demanda")
+}
+
+model PCA {
+  id              String    @id @default(cuid())
+  orgaoId         String
+  ano             Int
+  versao          Int       @default(1)
+  dataAprovacao   DateTime?
+  dataPublicacao  DateTime?
+  status          StatusPCA @default(RASCUNHO)
+  observacoes     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  orgao Orgao     @relation(fields: [orgaoId], references: [id])
+  itens ItemPCA[]
+
+  @@unique([orgaoId, ano, versao])
+  @@map("planos_contratacao_anual")
+}
+
+model ItemPCA {
+  id                        String       @id @default(cuid())
+  pcaId                     String?
+  dfdId                     String?
+  descricao                 String
+  quantidade                Float
+  unidadeMedida             String
+  valorUnitarioEstimado     Decimal      @db.Decimal(15, 2)
+  valorTotalEstimado        Decimal      @db.Decimal(15, 2)
+  categoria                 TipoItem
+  natureza                  NaturezaItem
+  mesPrevisto               Int?
+  prioridade                Prioridade   @default(MEDIA)
+  acaoOrcamentaria          String?
+  fonteRecurso              String?
+  subelementoDespesa        String?
+  justificativa             String?
+  alinhamentoEstrategico    String?
+  status                    StatusItemPCA @default(PLANEJADO)
+  dataPrevistaInicio        DateTime?
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+
+  pca PCA?  @relation(fields: [pcaId], references: [id])
+  dfd DocumentoFormalizacaoDemanda? @relation(fields: [dfdId], references: [id])
+
+  @@map("itens_pca")
+}
+
+model Usuario {
+  id         String       @id @default(cuid())
+  nome       String
+  email      String       @unique
+  senhaHash  String
+  papel      PapelUsuario @default(REQUISITANTE)
+  orgaoId    String?
+  ativo      Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("usuarios")
+}
+
+model CategoriaItem {
+  id        String   @id @default(cuid())
+  nome      String   @unique
+  tipo      TipoItem
+  descricao String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categorias_item")
+}
+
+model NaturezaItemConfig {
+  id        String      @id @default(cuid())
+  nome      String      @unique
+  tipo      NaturezaItem
+  descricao String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@map("naturezas_item")
+}
