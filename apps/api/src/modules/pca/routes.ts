@@ -26,9 +26,9 @@ router.get('/', async (req, res) => {
       orderBy: [{ ano: 'desc' }, { versao: 'desc' }]
     })
 
-    const result = planos.map(p => ({
+    const result = planos.map((p: any) => ({
       ...p,
-      totalEstimado: p.itens.reduce((sum, i) => sum + Number(i.valorTotalEstimado), 0),
+      totalEstimado: p.itens.reduce((sum: number, i: any) => sum + Number(i.valorTotalEstimado), 0),
       quantidadeItens: p._count.itens,
       itens: undefined,
       _count: undefined
@@ -78,7 +78,7 @@ router.post('/', async (req, res) => {
         versao,
         observacoes,
         itens: {
-          connect: itens.map(i => ({ id: i.id }))
+          connect: itens.map((i: any) => ({ id: i.id }))
         }
       },
       include: { itens: true }
@@ -156,7 +156,7 @@ router.get('/:id/exportar', async (req, res) => {
     })
     if (!pca) return res.status(404).json({ error: 'PCA não encontrado' })
 
-    const linhas = pca.itens.map(item => ({
+    const linhas = pca.itens.map((item: any) => ({
       descricao: item.descricao,
       quantidade: item.quantidade,
       unidade: item.unidadeMedida,
@@ -176,7 +176,7 @@ router.get('/:id/exportar', async (req, res) => {
       status: pca.status,
       dataAprovacao: pca.dataAprovacao,
       dataPublicacao: pca.dataPublicacao,
-      totalGeral: linhas.reduce((s, i) => s + i.valorTotal, 0),
+      totalGeral: linhas.reduce((s: number, i: any) => s + i.valorTotal, 0),
       itens: linhas
     })
   } catch (error) {

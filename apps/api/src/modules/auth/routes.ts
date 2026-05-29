@@ -22,7 +22,9 @@ router.post('/login', async (req, res) => {
 
 router.get('/usuarios', async (_req, res) => {
   try {
-    const usuarios = await prisma.usuario.findMany({ omit: { senhaHash: true } })
+    const usuarios = await prisma.usuario.findMany({
+      select: { id: true, nome: true, email: true, papel: true, orgaoId: true, ativo: true, createdAt: true, updatedAt: true }
+    })
     res.json(usuarios)
   } catch (error) {
     res.status(500).json({ error: 'Erro interno do servidor' })

@@ -51,7 +51,7 @@ router.post('/publicar/:pcaId', async (req, res) => {
 
     const token = await getToken()
 
-    const itensPlano = pca.itens.map((item, index) =>
+    const itensPlano = pca.itens.map((item: any, index: number) =>
       mapItemToPncp(
         {
           descricao: item.descricao,
