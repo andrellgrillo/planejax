@@ -21,19 +21,30 @@ export default function UnidadesRequisitantesPage() {
   const [urs, setUrs] = useState<UR[]>([])
   const [ugs, setUgs] = useState<UG[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({ nome: '', sigla: '', unidadeGestoraId: '' })
 
   async function loadAll() {
+    setError('')
     try {
       const [ursRes, ugsRes] = await Promise.all([
         fetch('/api/requisitantes'),
         fetch('/api/unidades'),
       ])
+      if (!ursRes.ok) {
+        const err = await ursRes.json()
+        throw new Error(err.error || 'Erro ao carregar requisitantes')
+      }
+      if (!ugsRes.ok) {
+        const err = await ugsRes.json()
+        throw new Error(err.error || 'Erro ao carregar unidades gestoras')
+      }
       setUrs(await ursRes.json())
       setUgs(await ugsRes.json())
     } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erro de conexão')
       console.error(e)
     } finally {
       setLoading(false)
@@ -50,18 +61,17 @@ export default function UnidadesRequisitantesPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (editingId) {
-      await fetch(`/api/requisitantes/${editingId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-    } else {
-      await fetch('/api/requisitantes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
+    const url = editingId ? `/api/requisitantes/${editingId}` : '/api/requisitantes'
+    const method = editingId ? 'PUT' : 'POST'
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      alert(err.error || 'Erro ao salvar')
+      return
     }
     resetForm()
     loadAll()
@@ -75,7 +85,12 @@ export default function UnidadesRequisitantesPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Tem certeza que deseja excluir esta unidade requisitante?')) return
-    await fetch(`/api/requisitantes/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/requisitantes/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const err = await res.json()
+      alert(err.error || 'Erro ao excluir')
+      return
+    }
     loadAll()
   }
 
@@ -95,6 +110,10 @@ export default function UnidadesRequisitantesPage() {
           {showForm ? 'Cancelar' : '+ Nova UR'}
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 text-sm">{error}</div>
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 shadow-sm mb-6 border border-gray-200 space-y-4">
@@ -144,18 +163,18 @@ export default function UnidadesRequisitantesPage() {
             </tr>
           </thead>
           <tbody>
-            {urs.length === 0 && (
+            {(!Array.isArray(urs) || urs.length === 0) && (
               <tr><td colSpan={5} className="text-center py-8 text-gray-400">Nenhuma unidade requisitante cadastrada.</td></tr>
             )}
-            {urs.map(ur => (
+            {Array.isArray(urs) && urs.map(ur => (
               <tr key={ur.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-3 px-4 font-medium text-gray-900">{ur.nome}</td>
                 <td className="py-3 px-4 text-gray-500">{ur.sigla || '-'}</td>
                 <td className="py-3 px-4 text-gray-500">
-                  {ur.unidadeGestora.nome}
-                  {ur.unidadeGestora.sigla && <span className="text-gray-400"> ({ur.unidadeGestora.sigla})</span>}
+                  {ur.unidadeGestora?.nome || '-'}
+                  {ur.unidadeGestora?.sigla && <span className="text-gray-400"> ({ur.unidadeGestora.sigla})</span>}
                 </td>
-                <td className="py-3 px-4 text-center text-gray-500">{ur._count.dfds}</td>
+                <td className="py-3 px-4 text-center text-gray-500">{ur._count?.dfds ?? 0}</td>
                 <td className="py-3 px-4 text-right">
                   <button onClick={() => startEdit(ur)}
                     className="text-blue-700 hover:text-blue-900 font-medium mr-3">Editar</button>
