@@ -112,7 +112,12 @@ export default function UnidadesGestorasPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Tem certeza que deseja excluir esta unidade gestora?')) return
-    await fetch(`/api/orgaos/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/orgaos/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const err = await res.json()
+      alert(err.error || 'Erro ao excluir. Verifique se não há secretarias vinculadas.')
+      return
+    }
     loadAll()
   }
 
@@ -125,21 +130,18 @@ export default function UnidadesGestorasPage() {
   async function handleSubmitSec(e: React.FormEvent) {
     e.preventDefault()
     if (!expandedUg) return
-    if (editingSec) {
-      await fetch(`/api/unidades/${editingSec}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(secForm),
-      })
-    } else {
-      await fetch('/api/unidades', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...secForm, orgaoId: expandedUg }),
-      })
+    const url = editingSec ? `/api/unidades/${editingSec}` : '/api/unidades'
+    const method = editingSec ? 'PUT' : 'POST'
+    const body = editingSec ? secForm : { ...secForm, orgaoId: expandedUg }
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    if (!res.ok) {
+      const err = await res.json()
+      alert(err.error || 'Erro ao salvar secretaria')
+      return
     }
     resetSecForm()
     loadSecretarias(expandedUg)
+    loadAll()
   }
 
   function startEditSec(sec: Secretaria) {
@@ -150,8 +152,14 @@ export default function UnidadesGestorasPage() {
 
   async function handleDeleteSec(id: string) {
     if (!confirm('Tem certeza?')) return
-    await fetch(`/api/unidades/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/unidades/${id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const err = await res.json()
+      alert(err.error || 'Erro ao excluir secretaria')
+      return
+    }
     if (expandedUg) loadSecretarias(expandedUg)
+    loadAll()
   }
 
   if (loading) return <p className="text-gray-500">Carregando...</p>
