@@ -10,7 +10,6 @@ import { router as authRouter } from './modules/auth/routes'
 import { router as pncpRouter } from './modules/pncp/routes'
 
 const app = express()
-const PORT = process.env.PORT || 3001
 
 app.use(cors())
 app.use(express.json())
@@ -28,8 +27,12 @@ app.use('/api/itens', itensRouter)
 app.use('/api/categorias', categoriasRouter)
 app.use('/api/pncp', pncpRouter)
 
-app.listen(PORT, () => {
-  console.log(`[planejax-api] running on http://localhost:${PORT}`)
-})
+const PORT = process.env.PORT || 3001
+
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`[planejax-api] running on http://localhost:${PORT}`)
+  })
+}
 
 export default app
