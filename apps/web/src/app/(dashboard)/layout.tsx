@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 
 const navItems = [
   { href: '/unidades', label: 'Unidades', icon: '🏛' },
+  { href: '/unidades-requisitantes', label: 'U. Requisitantes', icon: '🏢' },
   { href: '/dfd', label: 'DFDs', icon: '📋' },
   { href: '/pca', label: 'PCA', icon: '📊' },
   { href: '/relatorios', label: 'Relatórios', icon: '📈' },
@@ -25,7 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map(item => {
-            const active = pathname.startsWith(item.href)
+            const active = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
                 key={item.href}

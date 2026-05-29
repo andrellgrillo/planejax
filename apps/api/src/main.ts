@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { router as orgaosRouter } from './modules/orgaos/routes'
 import { router as unidadesRouter } from './modules/unidades/routes'
+import { router as requisitantesRouter } from './modules/requisitantes/routes'
 import { router as dfdRouter } from './modules/dfd/routes'
 import { router as pcaRouter } from './modules/pca/routes'
 import { router as itensRouter } from './modules/itens/routes'
@@ -21,6 +22,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRouter)
 app.use('/api/orgaos', orgaosRouter)
 app.use('/api/unidades', unidadesRouter)
+app.use('/api/requisitantes', requisitantesRouter)
 app.use('/api/dfd', dfdRouter)
 app.use('/api/pca', pcaRouter)
 app.use('/api/itens', itensRouter)
