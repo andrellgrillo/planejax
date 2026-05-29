@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+
 interface Orgao {
   id: string
   cnpj: string
@@ -12,11 +13,22 @@ interface Orgao {
   _count: { unidades: number; pcas: number }
 }
 
+interface OrgaoForm {
+  cnpj: string
+  nome: string
+  sigla: string
+  esfera: string
+  poder: string
+}
+
+const initialForm: OrgaoForm = { cnpj: '', nome: '', sigla: '', esfera: 'FEDERAL', poder: 'EXECUTIVO' }
+
 export default function OrgaosPage() {
   const [orgaos, setOrgaos] = useState<Orgao[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ cnpj: '', nome: '', sigla: '', esfera: 'FEDERAL', poder: 'EXECUTIVO' })
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState<OrgaoForm>(initialForm)
 
   async function loadOrgaos() {
     try {
@@ -32,15 +44,40 @@ export default function OrgaosPage() {
 
   useEffect(() => { loadOrgaos() }, [])
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault()
-    await fetch('/api/orgaos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
+  function resetForm() {
+    setForm(initialForm)
     setShowForm(false)
-    setForm({ cnpj: '', nome: '', sigla: '', esfera: 'FEDERAL', poder: 'EXECUTIVO' })
+    setEditingId(null)
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (editingId) {
+      await fetch(`/api/orgaos/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+    } else {
+      await fetch('/api/orgaos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+    }
+    resetForm()
+    loadOrgaos()
+  }
+
+  function startEdit(orgao: Orgao) {
+    setForm({ cnpj: orgao.cnpj, nome: orgao.nome, sigla: orgao.sigla, esfera: orgao.esfera, poder: orgao.poder })
+    setEditingId(orgao.id)
+    setShowForm(true)
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Tem certeza que deseja excluir este órgão?')) return
+    await fetch(`/api/orgaos/${id}`, { method: 'DELETE' })
     loadOrgaos()
   }
 
@@ -54,7 +91,7 @@ export default function OrgaosPage() {
           <p className="text-sm text-gray-500">Gerencie os órgãos da administração pública</p>
         </div>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => { resetForm(); setShowForm(!showForm) }}
           className="bg-blue-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-800"
         >
           {showForm ? 'Cancelar' : '+ Novo Órgão'}
@@ -62,7 +99,8 @@ export default function OrgaosPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-white rounded-xl p-6 shadow-sm mb-6 border border-gray-200 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl p-6 shadow-sm mb-6 border border-gray-200 space-y-4">
+          <h2 className="font-semibold text-gray-900">{editingId ? 'Editar Órgão' : 'Novo Órgão'}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">CNPJ</label>
@@ -99,9 +137,14 @@ export default function OrgaosPage() {
               </select>
             </div>
           </div>
-          <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-green-700">
-            Salvar
-          </button>
+          <div className="flex gap-2">
+            <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-green-700">
+              {editingId ? 'Atualizar' : 'Salvar'}
+            </button>
+            <button type="button" onClick={resetForm} className="text-gray-600 px-4 py-2 rounded-lg text-sm hover:bg-gray-100">
+              Cancelar
+            </button>
+          </div>
         </form>
       )}
 
@@ -124,6 +167,16 @@ export default function OrgaosPage() {
               <span>{orgao.poder}</span>
               <span>{orgao._count.unidades} unidade(s)</span>
               <span>{orgao._count.pcas} PCA(s)</span>
+            </div>
+            <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+              <button onClick={() => startEdit(orgao)}
+                className="text-blue-700 text-sm hover:text-blue-900 font-medium">
+                Editar
+              </button>
+              <button onClick={() => handleDelete(orgao.id)}
+                className="text-red-600 text-sm hover:text-red-800 font-medium">
+                Excluir
+              </button>
             </div>
           </div>
         ))}
