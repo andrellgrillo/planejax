@@ -39,6 +39,7 @@ export default function UnidadesGestorasPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<UGForm>(initialForm)
   const [expandedUg, setExpandedUg] = useState<string | null>(null)
+  const [uos, setUos] = useState<{ id: string; codigo: string | null; nome: string }[]>([])
   const [showSecForm, setShowSecForm] = useState(false)
   const [editingSec, setEditingSec] = useState<string | null>(null)
   const [secForm, setSecForm] = useState({ nome: '', sigla: '', codigoUasg: '' })
@@ -62,12 +63,19 @@ export default function UnidadesGestorasPage() {
     setSecretarias(data)
   }
 
+  async function loadUos(ugId: string) {
+    const res = await fetch(`/api/unidades-orcamentarias?orgaoId=${ugId}`)
+    const data = await res.json()
+    setUos(Array.isArray(data) ? data : [])
+  }
+
   function toggleUg(ugId: string) {
     if (expandedUg === ugId) {
       setExpandedUg(null)
     } else {
       setExpandedUg(ugId)
       loadSecretarias(ugId)
+      loadUos(ugId)
     }
   }
 
@@ -243,6 +251,20 @@ export default function UnidadesGestorasPage() {
 
             {expandedUg === ug.id && (
               <div className="border-t border-gray-100 p-6 pt-4 space-y-3">
+
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Unidades Orçamentárias</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {uos.length === 0 && <span className="text-xs text-gray-400">Nenhuma</span>}
+                    {uos.map(uo => (
+                      <span key={uo.id} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                        {uo.codigo && <span className="font-mono">{uo.codigo} - </span>}
+                        {uo.nome}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="flex justify-between items-center">
                   <h4 className="text-sm font-medium text-gray-700">Secretarias</h4>
                   <button onClick={() => { resetSecForm(); setShowSecForm(true) }}
