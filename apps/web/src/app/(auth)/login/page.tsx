@@ -25,7 +25,7 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
-      router.push('/orgaos')
+      router.push('/unidades')
     } catch {
       setError('Erro de conexão com o servidor')
       setLoading(false)
