@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const navItems = [
-  { href: '/orgaos', label: 'Órgãos', icon: '🏛' },
+  { href: '/unidades', label: 'Unidades', icon: '🏛' },
+  { href: '/orgaos', label: 'Órgãos', icon: '🏢' },
   { href: '/dfd', label: 'DFDs', icon: '📋' },
   { href: '/pca', label: 'PCA', icon: '📊' },
   { href: '/relatorios', label: 'Relatórios', icon: '📈' },

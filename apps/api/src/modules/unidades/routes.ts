@@ -51,6 +51,15 @@ router.put('/:id', async (req, res) => {
   }
 })
 
+router.delete('/:id', async (req, res) => {
+  try {
+    await prisma.unidadeGestora.delete({ where: { id: req.params.id } })
+    res.status(204).send()
+  } catch (error) {
+    res.status(400).json({ error: 'Erro ao excluir unidade' })
+  }
+})
+
 router.post('/:id/requisitantes', async (req, res) => {
   try {
     const requisitante = await prisma.unidadeRequisitante.create({
@@ -71,5 +80,26 @@ router.get('/:id/requisitantes', async (req, res) => {
     res.json(requisitantes)
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar unidades requisitantes' })
+  }
+})
+
+router.put('/:ugId/requisitantes/:id', async (req, res) => {
+  try {
+    const requisitante = await prisma.unidadeRequisitante.update({
+      where: { id: req.params.id },
+      data: req.body
+    })
+    res.json(requisitante)
+  } catch (error) {
+    res.status(400).json({ error: 'Erro ao atualizar unidade requisitante' })
+  }
+})
+
+router.delete('/:ugId/requisitantes/:id', async (req, res) => {
+  try {
+    await prisma.unidadeRequisitante.delete({ where: { id: req.params.id } })
+    res.status(204).send()
+  } catch (error) {
+    res.status(400).json({ error: 'Erro ao excluir unidade requisitante' })
   }
 })
